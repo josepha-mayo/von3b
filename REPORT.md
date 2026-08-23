@@ -1,4 +1,4 @@
-# VON-3B — Technical Report
+﻿# VON-3B — Technical Report
 
 **Team ID:** REPLACE_WITH_DEVPOST_TEAM_ID  
 **Domain:** coding_assistants  
@@ -59,7 +59,7 @@ The African constraint that matters here is connectivity and cost: one download,
 
 ## Benchmarks
 
-These are the **development-machine inference** numbers the template asks for. Official `Sacc` / `Sperf` / `Seff` are measured by the ADTC profiler on the standard evaluation machine. We do not substitute unofficial compact HumanEval / MBPP / toy-tool slices for that.
+These are the **development-machine inference** numbers the template asks for. Official `Sacc` / `Sperf` / `Seff` are measured by the ADTC profiler on the standard evaluation machine.
 
 | Metric | Value |
 |---|---|
