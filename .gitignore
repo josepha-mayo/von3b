@@ -1,0 +1,19 @@
+# Model weights — never commit these to git
+*.gguf
+model/*.gguf
+model/*.bin
+model/*.safetensors
+model/*
+!model/.gitkeep
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local profiler output
+submission.json
+audit.json

@@ -1,0 +1,37 @@
+{
+  "team_id": "REPLACE_WITH_DEVPOST_TEAM_ID",
+  "domain": "coding_assistants",
+  "language_scope": ["en"],
+  "african_alpha_claim": false,
+  "budget_laptop_claim": true,
+  "submitter": {
+    "name": "Ayanda Joseph",
+    "email": "ayandajoseph390@gmail.com",
+    "github_handle": "josepha-mayo"
+  },
+  "cross_disciplinary_pairing": {
+    "discipline": "education",
+    "load_bearing": true,
+    "description": "offline coding tutor for students and junior devs on a normal 8gb laptop. no cloud at inference."
+  },
+  "test_prompts": [
+    {
+      "prompt_id": "tp_001",
+      "prompt": "Write a Python function `def two_sum(nums: list[int], target: int) -> list[int]` that returns indices of two numbers adding to target. Assume exactly one solution. Return only the function."
+    },
+    {
+      "prompt_id": "tp_002",
+      "prompt": "Fix this buggy Python function so it correctly returns the maximum of a non-empty list of integers (including negatives):\n\ndef max_val(xs):\n    m = 0\n    for x in xs:\n        if x > m:\n            m = x\n    return m\n\nReturn only the corrected function."
+    }
+  ],
+  "model": {
+    "name": "von3b-Q8_0",
+    "runtime": "llama.cpp",
+    "quantization": "GGUF Q8_0",
+    "parameters_estimate": "3B",
+    "packaging": "binary_bundle"
+  },
+  "_runtime": {
+    "model_path": "model/von3b-Q8_0.gguf"
+  }
+}
