@@ -12,7 +12,7 @@
   "cross_disciplinary_pairing": {
     "discipline": "education",
     "load_bearing": true,
-    "description": "offline coding tutor for students and junior devs on a normal 8gb laptop. no cloud at inference."
+    "description": "Offline coding assistant and autonomous agent for students and developers on an 8 GB laptop. Writes code, uses tools, and runs without a network after download."
   },
   "test_prompts": [
     {

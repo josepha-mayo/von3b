@@ -12,7 +12,6 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODEL_DIR="$HERE/model"
 MODEL_FILE="$MODEL_DIR/von3b-Q8_0.gguf"
 
-# public hf, no login. q8 first. q4 only if q8 does not fit the 8gb laptop.
 MODEL_URL="${VON_GGUF_URL:-https://huggingface.co/josephmayo/von3b/resolve/main/von3b-Q8_0.gguf}"
 
 mkdir -p "$MODEL_DIR"
