@@ -14,6 +14,7 @@ Weights are hosted on Hugging Face. This repository is the evaluation package, n
 - Laptop artifact for this track: `von3b-Q8_0.gguf` (llama.cpp, GGUF Q8_0)
 - Runtime: llama.cpp only
 - Target machine: 4 vCPU, 8 GB RAM, integrated GPU, Ubuntu 22.04
+- Writeup: `REPORT.md` (problem, design decisions, constraints, laptop benchmarks)
 
 ```bash
 bash download_model.sh

@@ -1,70 +1,76 @@
-﻿# VON-3B — Technical Report
+# VON-3B — Technical Report
 
-**Track:** coding assistants  
-**Model:** VON-3B (GGUF Q8_0)  
-**Runtime:** llama.cpp  
-**Target:** 8 GB laptop, fully offline inference
+**Team ID:** REPLACE_WITH_DEVPOST_TEAM_ID  
+**Domain:** coding_assistants  
+**Model:** VON-3B (GGUF Q8_0)
+
+---
 
 ## Problem
 
-Reliable coding help is often locked behind cloud APIs, metered tokens, and a stable connection. Students and developers working from constrained networks still need a local assistant that can write code, fix bugs, and take tool actions on their machine.
+Students and developers on mid-range laptops often cannot depend on a cloud coding API. Connectivity is metered or unstable, and token fees add up. The target user is a student or working programmer who needs a local assistant that can write code, repair bugs, and call tools on the machine in front of them.
 
-VON-3B is a 3B coding assistant and autonomous agent for that setting. After a single public download it runs on a commodity 8 GB laptop through llama.cpp. Inference makes no network calls.
+VON-3B is a 3B coding assistant and autonomous agent for that setting. After one public download it runs fully offline on an 8 GB laptop through llama.cpp.
 
-## Design
+---
 
-**Base model.** `WeiboAI/VibeThinker-3B` revision `77bd2cced09193c8b9a59a32bd8577bbd1f3e01c`.
+## Design Decisions
 
-**Parent checkpoint.** G100 (`ad99e0471f6e73f4fbaf96211cacdb341f4a0704`), a 3B coding/agent checkpoint from the same lineage. This submission is not a from-scratch pretrain.
+- **Base model:** `WeiboAI/VibeThinker-3B`. Parent checkpoint is G100, a 3B coding/agent model from the same lineage. This is a continued 3B system, not a from-scratch pretrain.
+- **Training stack:** (1) supervised fine-tuning for code and the tool envelope; (2) reinforcement learning with group-conditioned adaptive LoPD (GRPO stays on for groups that still have a verified correct rollout; LoPD is applied only to failed rollouts that need a privileged teacher); (3) a small final LoRA pass (trusted-0.725, update 2).
+- **Quantization:** GGUF **Q8_0** for the laptop artifact, with Q4_0 K/V cache (`-ctk q4_0 -ctv q4_0`) and 65,536 context. Q8_0 keeps more of the 3B quality inside the 8 GB / 7 GB profiler budget. Q4_K_M was kept as a tighter-memory option; it is not the ADTC laptop default. CPU-only llama.cpp (`-ngl 0`) — no discrete GPU at eval time.
+- **Agent interface:** offered tools go in the user turn. The model is trained to keep thinking short and emit one canonical one-line `<tool_call>` when a tool is required.
+- **Alternatives considered:** shipping Q4_K_M as the primary artifact (smaller file, more quality loss); 64-token context (would fit easily, useless for real coding); embedding a chat UI (out of scope — judges score the llama.cpp model, not an app).
 
-**Training stack.**
+### Tools and why
 
-1. Supervised fine-tuning for coding and the tool envelope.
-2. Reinforcement learning with **group-conditioned adaptive LoPD**, a routing rule I designed: GRPO stays on whenever a group still contains a verified correct rollout; LoPD is applied only to failed rollouts that need a privileged teacher; all-fail groups do not invent a positive contrast. LoPD does not replace GRPO.
-3. A final LoRA adaptation (trusted-0.725 update 2) for a small trusted-Python pass.
-
-**Final adapter.** SHA-256 `2620e2ddb659455e6bfb13a0594d34279a4aa91fd98cb88ae74f02d9606b0305`. LoRA rank 16, alpha 32, dropout 0.05, targeting `q/k/v/o` and `gate/up/down`. Envelope token rows were frozen on this last pass. AdamW 1e-7, sequence length 4096, gradient accumulation 8. Winner checkpoint is update 2. That pass used about 0.17 GPU-hours on one NVIDIA RTX PRO 6000 (96 GB). Earlier mixed SFT on the same class of GPU was about 0.49 GPU-hours. G100 RL was full-parameter on a second 96 GB Blackwell GPU. A complete program-wide GPU-hour ledger will be added with the final results.
-
-**Agent interface.** Offered tools are placed in the user turn. The model is trained to keep thinking short and emit a single canonical one-line `<tool_call>` when a tool is required.
-
-**Laptop runtime (this repository).**
-
-| Setting | Value |
+| Tool | Why |
 |---|---|
-| Weights | GGUF Q8_0 (`von3b-Q8_0.gguf`) |
-| SHA-256 | `8854c9db34b0e4331e2258deefc5b7a9c16e40eb1f272e912540db93e5691ac5` |
-| Size | ~3.28 GB |
-| Context | 65,536 |
-| K/V cache | Q4_0 (`-ctk q4_0 -ctv q4_0`) |
-| Offload | CPU (`-ngl 0`) |
-| Host | public Hugging Face `josephmayo/von3b` |
+| llama.cpp | Required runtime. Only GGUF + llama.cpp is accepted by the ADTC profiler. |
+| GGUF Q8_0 | Fits 8 GB RAM with headroom when K/V is Q4_0; better quality than aggressive 2/3-bit quants. |
+| Hugging Face (public) | Credential-free weight host for `download_model.sh`. |
+| PyTorch + PEFT | Train-time only. Not used at laptop inference. |
 
-`download_model.sh` fetches that GGUF with no credentials. BF16 and additional GGUF quantizations live on the Hugging Face repo for research use; the ADTC laptop artifact is Q8_0.
+### Training compute (program, not the last LoRA step)
+
+The last LoRA update was a short pass on one NVIDIA RTX PRO 6000 (96 GB). That is **not** the program cost. Approximate **lower bounds** across the VON-3B / G100 line (training + eval), still incomplete:
+
+| GPU | Role | Lower bound |
+|---|---|---|
+| NVIDIA RTX PRO 6000 96 GB (Blackwell) | Full-parameter RL (G65–G100 class), later LoRA, some paid eval | **~80+ GPU-hours** (multi-day exclusive Vast boxes; last LoRA was ~0.2 h of this) |
+| NVIDIA RTX A6000 48 GB | Desktop RL, sponsor leftover coding evals | **~40+ GPU-hours** (desktop train + sponsor A6000 jobs; this leftover wave alone is already many hours on one card) |
+| NVIDIA Tesla T4 (Kaggle) | Parallel leftover BigCodeBench / LiveCodeBench / Aider shards | **~150 GPU-hours** of weekly quota consumed across the Kaggle accounts used this wave |
+
+These are floors, not a closed invoice. Official quality claims are **not** taken from GPU-hours.
+
+---
 
 ## Constraints
 
 - Official profile: 4 vCPU, 8 GB RAM, integrated graphics, Ubuntu 22.04
 - Profiler memory budget: 7 GB
 - llama.cpp / GGUF only
-- Zero outbound network after download
+- Zero outbound network after `download_model.sh`
 - Exactly two public test prompts in `metadata.json`; organizers add two hidden prompts
 
-The African context is connectivity and cost: one download, then offline help for coursework and local software work.
+The African constraint that matters here is connectivity and cost: one download, then offline help for coursework and local software work.
+
+---
 
 ## Benchmarks
 
-Official coding and profiler numbers will be written here when the matched native evaluations finish. We do not report training loss as a quality claim.
+These are the **development-machine inference** numbers the template asks for. Official `Sacc` / `Sperf` / `Seff` are measured by the ADTC profiler on the standard evaluation machine. We do not substitute unofficial compact HumanEval / MBPP / toy-tool slices for that.
 
-Compact selector evidence used only to pick the adapter (not the joint laptop score):
-
-| Probe | VON-3B | G100 parent |
-|---|---:|---:|
-| HumanEval (12) | 11 | 9 |
-| MBPP (12) | 12 | 11 |
-| Product-tool valid / exact / short-think (32) | 31 / 6 / 32 | — |
-
-Matched BigCodeBench, LiveCodeBench, and Aider scores, plus ADTC profiler `Sacc` / `Sperf` / `Seff`, will replace this section when both arms are complete under the same harness.
+| Metric | Value |
+|---|---|
+| Machine | Participant laptop, 8 GB RAM, CPU-only llama.cpp (profiler run pending) |
+| RAM at peak | To be filled from `adtc-profiler` `submission.json` |
+| Time to first token | To be filled from profiler |
+| Generation speed | To be filled from profiler |
+| Thermal throttling | To be filled from profiler |
 
 ```bash
 llama-cli -m model/von3b-Q8_0.gguf -c 65536 -ctk q4_0 -ctv q4_0 -ngl 0
 ```
+
+Matched coding evals (BigCodeBench, LiveCodeBench, Aider) vs G100 are in progress under one harness. They will be added here only when both arms are complete. We do not claim a result from training loss.
