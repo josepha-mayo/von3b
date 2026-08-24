@@ -1,6 +1,8 @@
 # VON-3B
 
-VON-3B is a 3B-parameter **offline coding assistant and autonomous agent** for the ADTC 2026 laptop track. After one public download it runs locally in llama.cpp on a standard 8 GB machine. No API key and no network at inference.
+**Created by Joseph Ayanda**, 18-year-old ML engineer. He designed and ran the full path: SFT, RL, group-conditioned adaptive LoPD (our distillation), LoRA, weight edits, and the laptop GGUF pack.
+
+VON-3B is one 3B model that covers **two jobs**: an **offline coding assistant** and an **autonomous agent**. After one public download it runs locally in llama.cpp on a standard 8 GB machine. No API key and no network at inference.
 
 It is built for:
 
@@ -15,6 +17,7 @@ Weights are hosted on Hugging Face. This repository is the evaluation package, n
 - Runtime: llama.cpp only
 - Target machine: 4 vCPU, 8 GB RAM, integrated GPU, Ubuntu 22.04
 - Writeup: `REPORT.md` (problem, design decisions, constraints, laptop benchmarks)
+- LoPD research (our method): `GROUP_CONDITIONED_ADAPTIVE_LOPD.md`
 - Versus the same base: better HumanEval, shorter think, and real one-line tool calls (agentic coding). EvalPlus 0.3.1, 164 tasks: VON-3B **0.921** HumanEval / **0.884** HumanEval+ vs base **0.866** / **0.817**
 - Tool probe (32 tasks): VON-3B 32/32 valid one-line tool calls vs base 0/32
 
