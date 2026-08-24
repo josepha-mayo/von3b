@@ -16,8 +16,7 @@ Weights are hosted on Hugging Face. This repository is the evaluation package, n
 - Laptop artifact for this track: `von3b-Q8_0.gguf` (llama.cpp, GGUF Q8_0)
 - Runtime: llama.cpp only
 - Target machine: 4 vCPU, 8 GB RAM, integrated GPU, Ubuntu 22.04
-- Writeup: `REPORT.md` (problem, design decisions, constraints, laptop benchmarks)
-- LoPD research (our method): `GROUP_CONDITIONED_ADAPTIVE_LOPD.md`
+- Writeup: `REPORT.md` (problem, design decisions including our group-conditioned adaptive LoPD, constraints, laptop benchmarks)
 - Versus the same base: better HumanEval, shorter think, and real one-line tool calls (agentic coding). EvalPlus 0.3.1, 164 tasks: VON-3B **0.921** HumanEval / **0.884** HumanEval+ vs base **0.866** / **0.817**
 - Tool probe (32 tasks): VON-3B 32/32 valid one-line tool calls vs base 0/32
 
