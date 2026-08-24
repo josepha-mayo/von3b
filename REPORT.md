@@ -1,4 +1,4 @@
-﻿# VON-3B - Technical Report
+# VON-3B - Technical Report
 
 **Team ID:** 1133460
 **Domain:** coding_assistants
