@@ -32,6 +32,11 @@
     "packaging": "binary_bundle"
   },
   "_runtime": {
-    "model_path": "model/von3b-Q8_0.gguf"
+    "model_path": "model/von3b-Q8_0.gguf",
+    "n_ctx": 65536,
+    "cache_type_k": "q4_0",
+    "cache_type_v": "q4_0",
+    "n_gpu_layers": 0,
+    "llama_cli": "llama-cli -m model/von3b-Q8_0.gguf -c 65536 -ctk q4_0 -ctv q4_0 -ngl 0"
   }
 }
