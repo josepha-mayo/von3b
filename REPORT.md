@@ -86,19 +86,20 @@ Matched greedy tool probe on the 32-task envelope bank (`max_new=256`, same snap
 | **VON-3B** | **32 / 32** | **32 / 32** |
 | VibeThinker-3B base | 0 / 32 | 0 / 32 |
 
-Participant `adtc-profiler` run of this same Q8_0 GGUF (`measured_on`: `participant_laptop`). These are the numbers from that run. Organizers will run the profiler themselves. We will replace this table with the volunteer 8 GB laptop run when that file exists.
+Volunteer laptop `adtc-profiler` run of this same Q8_0 GGUF (`measured_on`: `participant_laptop`). Numbers below are taken from that `submission.json`. Organizers will run the profiler themselves.
 
-| Metric | Value from `submission.json` |
+| Metric | Value from volunteer `submission.json` |
 | --- | --- |
-| Generation speed | 3.16 tok/s (512 prompt / 128 gen) |
-| Time to first token | 54435.52 ms |
-| Peak RSS | 3987.84 MB |
-| Steady-state RSS | 3651.76 MB |
+| Machine | 11th Gen Intel Core i3-1115G4 @ 3.00GHz, Ubuntu 24.04 LTS, CPU-only |
+| Generation speed | 5.29 tok/s (512 prompt / 128 gen) |
+| Time to first token | 27259.33 ms |
+| Peak RSS | 3312.59 MB |
+| Steady-state RSS | 3187.87 MB |
 | Thermal throttling | false |
-| `cpu_percent_p99` | 100.0 |
-| `arc_easy` n=50 `acc_norm` | 0.30 (profiler accuracy stage on this machine, not a coding claim) |
+| `cpu_percent_p99` | 56.2 |
+| `arc_easy` n=50 `acc_norm` | 0.28 (profiler accuracy stage on that machine, not a coding claim) |
 
-Devpost self-reported **Sperf = 21.07** and **Seff = 43.03** are computed from that same profiler JSON using the official formulas (`100 * 3.16 / 15` and `100 * (7.0 - peak_rss_gb) / 7.0` with 7 GB as 7000 MB). No other benches are claimed as profiler output.
+Devpost self-reported **Sperf = 35.27** and **Seff = 52.68** are computed from that same profiler JSON using the official formulas (`100 * 5.29 / 15` and `100 * (7000 - 3312.59) / 7000`). No other benches are claimed as profiler output.
 
 ```bash
 llama-cli -m model/von3b-Q8_0.gguf -c 65536 -ctk q4_0 -ctv q4_0 -ngl 0
