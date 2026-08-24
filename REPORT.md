@@ -14,36 +14,47 @@ VON-3B is a 3B coding assistant and autonomous agent for that setting. After one
 
 ---
 
+
+
 ## Design Decisions
 
-- **Base model:** `WeiboAI/VibeThinker-3B`. Parent checkpoint is G100, a 3B coding/agent model from the same lineage. This is a continued 3B system, not a from-scratch pretrain.
+- **Base model:** `WeiboAI/VibeThinker-3B`. a 3B coding/agent model from the same lineage. This is a continued 3B system, not a from-scratch pretrain.
 - **Training stack:** (1) supervised fine-tuning for code and the tool envelope; (2) reinforcement learning with group-conditioned adaptive LoPD (GRPO stays on for groups that still have a verified correct rollout; LoPD is applied only to failed rollouts that need a privileged teacher); (3) a small final LoRA pass (trusted-0.725, update 2).
-- **Quantization:** GGUF **Q8_0** for the laptop artifact, with Q4_0 K/V cache (`-ctk q4_0 -ctv q4_0`) and 65,536 context. Q8_0 keeps more of the 3B quality inside the 8 GB / 7 GB profiler budget. Q4_K_M was kept as a tighter-memory option; it is not the ADTC laptop default. CPU-only llama.cpp (`-ngl 0`) — no discrete GPU at eval time.
+- **Quantization:** GGUF **Q8_0** for the laptop artifact, with Q4_0 K/V cache (`-ctk q4_0 -ctv q4_0`) and 65,536 context. Q8_0 is the only submitted weight. CPU-only llama.cpp (`-ngl 0`) — no discrete GPU at eval time.
 - **Agent interface:** offered tools go in the user turn. The model is trained to keep thinking short and emit one canonical one-line `<tool_call>` when a tool is required.
-- **Alternatives considered:** shipping Q4_K_M as the primary artifact (smaller file, more quality loss); 64-token context (would fit easily, useless for real coding); embedding a chat UI (out of scope — judges score the llama.cpp model, not an app).
+
+
 
 ### Tools and why
 
-| Tool | Why |
-|---|---|
-| llama.cpp | Required runtime. Only GGUF + llama.cpp is accepted by the ADTC profiler. |
-| GGUF Q8_0 | Fits 8 GB RAM with headroom when K/V is Q4_0; better quality than aggressive 2/3-bit quants. |
-| Hugging Face (public) | Credential-free weight host for `download_model.sh`. |
-| PyTorch + PEFT | Train-time only. Not used at laptop inference. |
+
+| Tool                  | Why                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| llama.cpp             | Required runtime. Only GGUF + llama.cpp is accepted by the ADTC profiler.                    |
+| GGUF Q8_0             | Fits 8 GB RAM with headroom when K/V is Q4_0; better quality than aggressive 2/3-bit quants. |
+| Hugging Face (public) | Credential-free weight host for `download_model.sh`.                                         |
+| PyTorch + PEFT        | Train-time only. Not used at laptop inference.                                               |
+
+
+
 
 ### Training compute (program, not the last LoRA step)
 
 The last LoRA update was a short pass on one NVIDIA RTX PRO 6000 (96 GB). That is **not** the program cost. Approximate **lower bounds** across the VON-3B / G100 line (training + eval), still incomplete:
 
-| GPU | Role | Lower bound |
-|---|---|---|
-| NVIDIA RTX PRO 6000 96 GB (Blackwell) | Full-parameter RL (G65–G100 class), later LoRA, some paid eval | **~80+ GPU-hours** (multi-day exclusive Vast boxes; last LoRA was ~0.2 h of this) |
-| NVIDIA RTX A6000 48 GB | Desktop RL, sponsor leftover coding evals | **~40+ GPU-hours** (desktop train + sponsor A6000 jobs; this leftover wave alone is already many hours on one card) |
-| NVIDIA Tesla T4 (Kaggle) | Parallel leftover BigCodeBench / LiveCodeBench / Aider shards | **~150 GPU-hours** of weekly quota consumed across the Kaggle accounts used this wave |
+
+| GPU                                   | Role                                                           | Lower bound                                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| NVIDIA RTX PRO 6000 96 GB (Blackwell) | Full-parameter RL (G65–G100 class), later LoRA, some paid eval | **~80+ GPU-hours** (multi-day exclusive Vast boxes; last LoRA was ~0.2 h of this)                                   |
+| NVIDIA RTX A6000 48 GB                | Desktop RL, sponsor leftover coding evals                      | **~40+ GPU-hours** (desktop train + sponsor A6000 jobs; this leftover wave alone is already many hours on one card) |
+| NVIDIA Tesla T4 (Kaggle)              | Parallel leftover coding-eval shards                           | **~150 GPU-hours** of weekly quota consumed across the Kaggle accounts used this wave                               |
+
 
 These are floors, not a closed invoice. Official quality claims are **not** taken from GPU-hours.
 
 ---
+
+
 
 ## Constraints
 
@@ -57,20 +68,42 @@ The African constraint that matters here is connectivity and cost: one download,
 
 ---
 
+
+
 ## Benchmarks
+
+Matched greedy HumanEval on the same 164-task EvalPlus 0.3.1 bank, same base snapshot, same generation settings (`max_new=8192`, greedy). This is a development-machine coding check, not the ADTC profiler score.
+
+
+| Arm    | HumanEval pass@1      | HumanEval+ pass@1     |
+| ------ | --------------------- | --------------------- |
+| VON-3B | **0.921** (151 / 164) | **0.884** (145 / 164) |
+| base   | 0.866 (142 / 164)     | 0.817 (134 / 164)     |
+
+
+Matched greedy tool probe on the official 32-task envelope bank (`max_new=256`, same base snapshot). A valid row is one short think block, then exactly one canonical one-line `<tool_call>`.
+
+
+| Arm    | Valid one-line tool | Exact target | Short think |
+| ------ | ------------------- | ------------ | ----------- |
+| VON-3B | **32 / 32**         | 4 / 32       | **32 / 32** |
+| base   | 0 / 32              | 0 / 32       | 0 / 32      |
+
 
 These are the **development-machine inference** numbers the template asks for. Official `Sacc` / `Sperf` / `Seff` are measured by the ADTC profiler on the standard evaluation machine.
 
-| Metric | Value |
-|---|---|
-| Machine | Participant laptop, 8 GB RAM, CPU-only llama.cpp (profiler run pending) |
-| RAM at peak | To be filled from `adtc-profiler` `submission.json` |
-| Time to first token | To be filled from profiler |
-| Generation speed | To be filled from profiler |
-| Thermal throttling | To be filled from profiler |
+
+| Metric              | Value                                                                   |
+| ------------------- | ----------------------------------------------------------------------- |
+| Machine             | Participant laptop, 8 GB RAM, CPU-only llama.cpp (profiler run pending) |
+| RAM at peak         | To be filled from `adtc-profiler` `submission.json`                     |
+| Time to first token | To be filled from profiler                                              |
+| Generation speed    | To be filled from profiler                                              |
+| Thermal throttling  | To be filled from profiler                                              |
+
 
 ```bash
 llama-cli -m model/von3b-Q8_0.gguf -c 65536 -ctk q4_0 -ctv q4_0 -ngl 0
 ```
 
-Matched coding evals (BigCodeBench, LiveCodeBench, Aider) vs G100 are in progress under one harness. They will be added here only when both arms are complete. We do not claim a result from training loss.
+Official `Sacc` / `Sperf` / `Seff` are measured by the ADTC profiler. We do not claim a result from training loss.
