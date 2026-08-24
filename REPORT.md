@@ -10,7 +10,7 @@
 
 Students and developers on mid-range laptops often cannot depend on a cloud coding API. Connectivity is metered or unstable, and token fees add up. The target user is a student or working programmer who needs a local assistant that can write code, repair bugs, and call tools on the machine in front of them.
 
-VON-3B is a 3B coding assistant and autonomous agent for that setting. After one public download it runs fully offline on an 8 GB laptop through llama.cpp.
+VON-3B is a 3B coding assistant and autonomous agent for that setting. After one public download it runs fully offline on an 8 GB laptop through llama.cpp. Versus the same base snapshot it is stronger on HumanEval, emits short thinking, and actually produces one-line tool calls, so it can do agentic coding on the laptop instead of only chatting.
 
 ---
 
@@ -21,6 +21,7 @@ VON-3B is a 3B coding assistant and autonomous agent for that setting. After one
 - **Base model:** `WeiboAI/VibeThinker-3B`. a 3B coding/agent model from the same lineage. This is a continued 3B system, not a from-scratch pretrain.
 - **Training stack:** (1) supervised fine-tuning for code and the tool envelope; (2) reinforcement learning with group-conditioned adaptive LoPD (GRPO stays on for groups that still have a verified correct rollout; LoPD is applied only to failed rollouts that need a privileged teacher); (3) a small final LoRA pass (trusted-0.725, update 2).
 - **Quantization:** GGUF **Q8_0** for the laptop artifact, with Q4_0 K/V cache (`-ctk q4_0 -ctv q4_0`) and 65,536 context. Q8_0 is the only submitted weight. CPU-only llama.cpp (`-ngl 0`) — no discrete GPU at eval time.
+- **What changed vs base:** the same coding bank (HumanEval / HumanEval+) went up. The 32-row tool probe went from 0 valid one-line calls on base to 32/32 on VON-3B, all with short think. Base writes long multi-line think and never emits a usable one-line `<tool_call>`. That is the agentic-coding claim: less rambling, then a real tool call, then code.
 - **Agent interface:** offered tools go in the user turn. The model is trained to keep thinking short and emit one canonical one-line `<tool_call>` when a tool is required.
 
 
