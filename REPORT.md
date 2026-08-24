@@ -1,6 +1,6 @@
 # VON-3B - Technical Report
 
-**Team ID:** 1133460
+**Team ID:** von-coder-3b-offline-coding-for-8-gb-laptops
 **Domain:** coding_assistants
 **Model:** VON-3B (GGUF Q8_0)
 **Created by:** I am Joseph Ayanda. This is my model. I ran every stage: SFT, RL, group-conditioned adaptive LoPD (our distillation), LoRA, and the weight edits that became the laptop GGUF.
