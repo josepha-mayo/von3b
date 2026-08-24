@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Download the ADTC laptop GGUF (Q8_0 only). Public URL, no credentials.
-# Output path must match metadata.json _runtime.model_path.
+# Official ADTC fetch. Public Hugging Face URL. No token. Ubuntu 22.04 has curl.
+# Writes model/von3b-Q8_0.gguf (exact size 3285475488 bytes) to match metadata.json.
 #
-# Intended llama.cpp flags after download:
+# After this script:
 #   llama-cli -m model/von3b-Q8_0.gguf -c 65536 -ctk q4_0 -ctv q4_0 -ngl 0
 
 set -euo pipefail

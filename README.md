@@ -1,24 +1,33 @@
 # VON-3B
 
-**Created by Joseph Ayanda**, 18-year-old ML engineer. He designed and ran the full path: SFT, RL, group-conditioned adaptive LoPD (our distillation), LoRA, weight edits, and the laptop GGUF pack.
+I am **Joseph Ayanda**. This is my repository and my 3B model. I designed and ran the full path: SFT, RL, group-conditioned adaptive LoPD (my distillation), LoRA, weight edits, and the laptop GGUF pack.
 
 VON-3B is one 3B model that covers **two jobs**: an **offline coding assistant** and an **autonomous agent**. After one public download it runs locally in llama.cpp on a standard 8 GB machine. No API key and no network at inference.
 
-It is built for:
+I built it to:
 
-- writing and repairing code
-- short, bounded reasoning
-- one-line tool use (`<tool_call>{...}</tool_call>`) so it can act as an agent, not only a chatbot
+- write and repair code
+- keep reasoning short
+- emit a real one-line tool call (`<tool_call>{...}</tool_call>`) so it can act as an agent, not only a chatbot
 
-Weights are hosted on Hugging Face. This repository is the evaluation package, not the weight dump.
+Weights live on Hugging Face. This repository is the evaluation package.
 
 - Model card and weights: https://huggingface.co/josephmayo/von3b
-- Laptop artifact for this track: `von3b-Q8_0.gguf` (llama.cpp, GGUF Q8_0)
+- Laptop artifact: `von3b-Q8_0.gguf` (llama.cpp, GGUF Q8_0, **3,285,475,488** bytes)
 - Runtime: llama.cpp only
 - Target machine: 4 vCPU, 8 GB RAM, integrated GPU, Ubuntu 22.04
-- Writeup: `REPORT.md` (problem, design decisions including our group-conditioned adaptive LoPD, constraints, laptop benchmarks)
-- Versus the same base: better HumanEval, shorter think, and real one-line tool calls (agentic coding). EvalPlus 0.3.1, 164 tasks: VON-3B **0.921** HumanEval / **0.884** HumanEval+ vs base **0.866** / **0.817**
-- Tool probe (32 tasks): VON-3B 32/32 valid one-line tool calls vs base 0/32
+- Writeup: `REPORT.md`
+
+I also measured a matched coding check against the same `WeiboAI/VibeThinker-3B` snapshot, same EvalPlus 0.3.1 harness, same 164 HumanEval tasks, greedy `max_new=8192`. I win both numbers:
+
+| Arm | HumanEval pass@1 | HumanEval+ pass@1 |
+| --- | --- | --- |
+| **VON-3B (mine)** | **0.921** (151 / 164) | **0.884** (145 / 164) |
+| VibeThinker-3B base | 0.866 (142 / 164) | 0.817 (134 / 164) |
+
+Tool probe, 32 tasks, greedy `max_new=256`, same snapshot: I emit a valid one-line `<tool_call>` with short think on **32 / 32**. The base emits **0 / 32**.
+
+Download is one public command. Ubuntu 22.04 already has `curl`. No Hugging Face token. The script writes `model/von3b-Q8_0.gguf` and checks the exact byte size so you get the same file I published.
 
 ```bash
 bash download_model.sh
